@@ -5,12 +5,39 @@
   <title>Text Scanner with Tesseract.js</title>
   <script src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js'></script>
   <style>
-    video, canvas {
+    .video-wrapper {
+      position: relative;
+      display: inline-block;
+    }
+
+    video {
+      width: 320px;
+      height: auto;
+    }
+
+    .overlay {
+      position: absolute;
+      left: 0;
+      width: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      pointer-events: none;
+    }
+
+    .overlay.top {
+      top: 0;
+    }
+
+    .overlay.bottom {
+      bottom: 0;
+    }
+
+    canvas {
       max-width: 100%;
       width: 320px;
-      margin: 10px 0;
+      margin-top: 10px;
       border: 1px solid #ccc;
     }
+
     #output {
       font-weight: bold;
       margin-top: 10px;
@@ -20,10 +47,13 @@
 </head>
 <body>
   <h2>Scan Code from Sticker</h2>
-  <video id="video" autoplay playsinline></video>
+  <div class="video-wrapper">
+    <video id="video" autoplay playsinline></video>
+    <div class="overlay top" id="overlayTop"></div>
+    <div class="overlay bottom" id="overlayBottom"></div>
+  </div>
   <br>
   <button onclick="captureAndScan()">Scan</button>
-  <br>
   <canvas id="canvas"></canvas>
   <p id="status">Waiting for scan...</p>
   <div id="output"></div>
@@ -34,27 +64,44 @@
     const ctx = canvas.getContext('2d');
     const status = document.getElementById('status');
     const output = document.getElementById('output');
+    const overlayTop = document.getElementById('overlayTop');
+    const overlayBottom = document.getElementById('overlayBottom');
 
-    // Start camera
     navigator.mediaDevices.getUserMedia({
-      video: {
-        facingMode: "environment"
-      }
+      video: { facingMode: "environment" }
     })
     .then(stream => {
       video.srcObject = stream;
+      video.onloadedmetadata = () => {
+        updateOverlays();
+      };
     })
     .catch(err => {
       status.textContent = "Camera access denied.";
       console.error(err);
     });
 
+    function updateOverlays() {
+      const videoHeight = video.videoHeight;
+      const videoWidth = video.videoWidth;
+      const targetAspect = 16 / 9;
+      const cropHeight = videoWidth / targetAspect;
+
+      let cropTop = (videoHeight - cropHeight) / 2;
+      if (cropTop < 0) cropTop = 0;
+
+      const videoDisplayHeight = video.getBoundingClientRect().height;
+      const overlayHeight = (cropTop / videoHeight) * videoDisplayHeight;
+
+      overlayTop.style.height = `${overlayHeight}px`;
+      overlayBottom.style.height = `${overlayHeight}px`;
+    }
+
     function captureAndScan() {
       const videoWidth = video.videoWidth;
       const videoHeight = video.videoHeight;
-
-      // Desired aspect ratio (16:9)
       const targetAspect = 16 / 9;
+
       let cropWidth = videoWidth;
       let cropHeight = videoWidth / targetAspect;
 
@@ -66,11 +113,9 @@
       const offsetX = (videoWidth - cropWidth) / 2;
       const offsetY = (videoHeight - cropHeight) / 2;
 
-      // Set canvas to cropped size
       canvas.width = cropWidth;
       canvas.height = cropHeight;
 
-      // Draw cropped frame to canvas
       ctx.drawImage(video, offsetX, offsetY, cropWidth, cropHeight, 0, 0, cropWidth, cropHeight);
 
       status.textContent = "Scanning...";
@@ -89,4 +134,3 @@
   </script>
 </body>
 </html>
-
