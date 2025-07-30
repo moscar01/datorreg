@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Text Scanner with Tesseract.js</title>
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4.0.2/dist/tjs
+  <style>
+    video, canvas {
+      max-width: 100%;
+      width: 300px;
+      margin: 10px 0;
+    }
+  </style>
+</head>
+<body>
+  <h2>Scan Code from Sticker</h2>
+  <video id="video" autoplay></video>
+  <button onclick="captureAndScan()">Scan</button>
+  <canvas id="canvas" style="display:none;"></canvas>
+  <p id="status">Waiting for scan...</p>
+
+  <script>
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const status = document.getElementById('status');
+
+    // Start camera
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+      .then(stream => {
+        video.srcObject = stream;
+      })
+      .catch(err => {
+        status.textContent = "Camera access denied.";
+        console.error(err);
+      });
+
+    function captureAndScan() {
+      const ctx = canvas.getContext('2d');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      status.textContent = "Scanning...";
+
+      Tesseract.recognize(canvas, 'eng')
+        .then(({ data: { text } }) => {
+          const code = text.trim();
+          status.textContent = `Scanned: ${code}`;
+          if (code) {
+            // Redirect to a URL based on the scanned code
+            window.location.href = `https://yourdomain.com/${encodeURIComponent(code)}`;
+          }
+        })
+        .catch(err => {
+          status.textContent = "Error during OCR.";
+          console.error(err);
+        });
+    }
+  </script>
+</body>
+</html>
