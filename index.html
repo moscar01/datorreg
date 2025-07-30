@@ -19,7 +19,7 @@
 </head>
 <body>
   <h2>Scan Code from Sticker</h2>
-  <video id="video" autoplay></video>
+  <video id="video" autoplay playsinline></video>
   <button onclick="captureAndScan()">Scan</button>
   <canvas id="canvas" style="display:none;"></canvas>
   <p id="status">Waiting for scan...</p>
@@ -61,6 +61,7 @@
         });
     }
   </script>
+
 </body>
 </html>
   
