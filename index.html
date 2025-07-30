@@ -1,14 +1,17 @@
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <title>Text Scanner with Tesseract.js</title>
-    <script src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js'></script>
+  <script src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js'></script>
   <style>
     video, canvas {
       max-width: 100%;
       width: 300px;
       margin: 10px 0;
+      border: 1px solid #ccc;
     }
     #output {
       font-weight: bold;
@@ -20,8 +23,10 @@
 <body>
   <h2>Scan Code from Sticker</h2>
   <video id="video" autoplay playsinline></video>
+  <br>
   <button onclick="captureAndScan()">Scan</button>
-  <canvas id="canvas" style="display:none;"></canvas>
+  <br>
+  <canvas id="canvas"></canvas>
   <p id="status">Waiting for scan...</p>
   <div id="output"></div>
 
@@ -31,15 +36,20 @@
     const status = document.getElementById('status');
     const output = document.getElementById('output');
 
-    // Start camera
-    navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
-      .then(stream => {
-        video.srcObject = stream;
-      })
-      .catch(err => {
-        status.textContent = "Camera access denied.";
-        console.error(err);
-      });
+    // Start camera with rear-facing preference and aspect ratio
+    navigator.mediaDevices.getUserMedia({
+      video: {
+        facingMode: "environment",
+        aspectRatio: 1.777 // 16:9
+      }
+    })
+    .then(stream => {
+      video.srcObject = stream;
+    })
+    .catch(err => {
+      status.textContent = "Camera access denied.";
+      console.error(err);
+    });
 
     function captureAndScan() {
       const ctx = canvas.getContext('2d');
@@ -61,7 +71,5 @@
         });
     }
   </script>
-
 </body>
 </html>
-  
