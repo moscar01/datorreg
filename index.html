@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -9,7 +7,7 @@
   <style>
     video, canvas {
       max-width: 100%;
-      width: 300px;
+      width: 320px;
       margin: 10px 0;
       border: 1px solid #ccc;
     }
@@ -33,14 +31,14 @@
   <script>
     const video = document.getElementById('video');
     const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
     const status = document.getElementById('status');
     const output = document.getElementById('output');
 
-    // Start camera with rear-facing preference and aspect ratio
+    // Start camera
     navigator.mediaDevices.getUserMedia({
       video: {
-        facingMode: "environment",
-        aspectRatio: 1.777 // 16:9
+        facingMode: "environment"
       }
     })
     .then(stream => {
@@ -52,10 +50,28 @@
     });
 
     function captureAndScan() {
-      const ctx = canvas.getContext('2d');
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      const videoWidth = video.videoWidth;
+      const videoHeight = video.videoHeight;
+
+      // Desired aspect ratio (16:9)
+      const targetAspect = 16 / 9;
+      let cropWidth = videoWidth;
+      let cropHeight = videoWidth / targetAspect;
+
+      if (cropHeight > videoHeight) {
+        cropHeight = videoHeight;
+        cropWidth = videoHeight * targetAspect;
+      }
+
+      const offsetX = (videoWidth - cropWidth) / 2;
+      const offsetY = (videoHeight - cropHeight) / 2;
+
+      // Set canvas to cropped size
+      canvas.width = cropWidth;
+      canvas.height = cropHeight;
+
+      // Draw cropped frame to canvas
+      ctx.drawImage(video, offsetX, offsetY, cropWidth, cropHeight, 0, 0, cropWidth, cropHeight);
 
       status.textContent = "Scanning...";
 
@@ -73,3 +89,4 @@
   </script>
 </body>
 </html>
+
